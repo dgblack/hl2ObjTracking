@@ -1,0 +1,73 @@
+﻿  MarkerTracker.cpp
+D:\david\HumanTeleop\HL2MarkerTracking\HL2MarkerTracking\MarkerTracker.h(130,31): warning C4305: 'initializing': truncation from 'double' to 'float'
+D:\david\HumanTeleop\HL2MarkerTracking\HL2MarkerTracking\MarkerTracker.h(131,31): warning C4305: 'initializing': truncation from 'double' to 'float'
+D:\david\HumanTeleop\HL2MarkerTracking\HL2MarkerTracking\MarkerTracker.h(132,31): warning C4305: 'initializing': truncation from 'double' to 'float'
+D:\david\HumanTeleop\HL2MarkerTracking\HL2MarkerTracking\MarkerTracker.h(133,31): warning C4305: 'initializing': truncation from 'double' to 'float'
+D:\david\HumanTeleop\HL2MarkerTracking\HL2MarkerTracking\MarkerTracker.cpp(52,39): warning C4458: declaration of 'minArea' hides class member
+D:\david\HumanTeleop\HL2MarkerTracking\HL2MarkerTracking\MarkerTracker.h(65,13): message : see declaration of 'winrt::HL2MarkerTracking::implementation::MarkerTracker::minArea'
+D:\david\HumanTeleop\HL2MarkerTracking\HL2MarkerTracking\MarkerTracker.cpp(52,52): warning C4458: declaration of 'maxArea' hides class member
+D:\david\HumanTeleop\HL2MarkerTracking\HL2MarkerTracking\MarkerTracker.h(64,13): message : see declaration of 'winrt::HL2MarkerTracking::implementation::MarkerTracker::maxArea'
+D:\david\HumanTeleop\HL2MarkerTracking\HL2MarkerTracking\MarkerTracker.cpp(52,65): warning C4458: declaration of 'binThreshold' hides class member
+D:\david\HumanTeleop\HL2MarkerTracking\HL2MarkerTracking\MarkerTracker.h(63,13): message : see declaration of 'winrt::HL2MarkerTracking::implementation::MarkerTracker::binThreshold'
+D:\david\HumanTeleop\HL2MarkerTracking\HL2MarkerTracking\MarkerTracker.cpp(52,85): warning C4458: declaration of 'convexity' hides class member
+D:\david\HumanTeleop\HL2MarkerTracking\HL2MarkerTracking\MarkerTracker.h(66,15): message : see declaration of 'winrt::HL2MarkerTracking::implementation::MarkerTracker::convexity'
+D:\david\HumanTeleop\HL2MarkerTracking\HL2MarkerTracking\MarkerTracker.cpp(52,102): warning C4458: declaration of 'circularity' hides class member
+D:\david\HumanTeleop\HL2MarkerTracking\HL2MarkerTracking\MarkerTracker.h(67,15): message : see declaration of 'winrt::HL2MarkerTracking::implementation::MarkerTracker::circularity'
+D:\david\HumanTeleop\HL2MarkerTracking\HL2MarkerTracking\MarkerTracker.cpp(52,120): warning C4458: declaration of 'contours' hides class member
+D:\david\HumanTeleop\HL2MarkerTracking\HL2MarkerTracking\MarkerTracker.h(62,14): message : see declaration of 'winrt::HL2MarkerTracking::implementation::MarkerTracker::contours'
+D:\david\HumanTeleop\HL2MarkerTracking\HL2MarkerTracking\MarkerTracker.cpp(52,135): warning C4458: declaration of 'saveIrImages' hides class member
+D:\david\HumanTeleop\HL2MarkerTracking\HL2MarkerTracking\MarkerTracker.h(61,14): message : see declaration of 'winrt::HL2MarkerTracking::implementation::MarkerTracker::saveIrImages'
+D:\david\HumanTeleop\HL2MarkerTracking\HL2MarkerTracking\MarkerTracker.cpp(87,37): warning C4267: '=': conversion from 'size_t' to 'int', possible loss of data
+D:\david\HumanTeleop\HL2MarkerTracking\HL2MarkerTracking\MarkerTracker.cpp(99,25): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
+D:\david\HumanTeleop\HL2MarkerTracking\HL2MarkerTracking\MarkerTracker.cpp(128,13): warning C4458: declaration of 'xCrop' hides class member
+D:\david\HumanTeleop\HL2MarkerTracking\HL2MarkerTracking\MarkerTracker.h(78,13): message : see declaration of 'winrt::HL2MarkerTracking::implementation::MarkerTracker::xCrop'
+D:\david\HumanTeleop\HL2MarkerTracking\HL2MarkerTracking\MarkerTracker.cpp(129,13): warning C4458: declaration of 'yCrop' hides class member
+D:\david\HumanTeleop\HL2MarkerTracking\HL2MarkerTracking\MarkerTracker.h(79,13): message : see declaration of 'winrt::HL2MarkerTracking::implementation::MarkerTracker::yCrop'
+D:\david\HumanTeleop\HL2MarkerTracking\HL2MarkerTracking\MarkerTracker.cpp(130,13): warning C4458: declaration of 'wCrop' hides class member
+D:\david\HumanTeleop\HL2MarkerTracking\HL2MarkerTracking\MarkerTracker.h(80,13): message : see declaration of 'winrt::HL2MarkerTracking::implementation::MarkerTracker::wCrop'
+D:\david\HumanTeleop\HL2MarkerTracking\HL2MarkerTracking\MarkerTracker.cpp(131,13): warning C4458: declaration of 'hCrop' hides class member
+D:\david\HumanTeleop\HL2MarkerTracking\HL2MarkerTracking\MarkerTracker.h(81,13): message : see declaration of 'winrt::HL2MarkerTracking::implementation::MarkerTracker::hCrop'
+D:\david\HumanTeleop\HL2MarkerTracking\HL2MarkerTracking\MarkerTracker.cpp(163,23): warning C4244: 'initializing': conversion from '_Tp' to 'int', possible loss of data
+          with
+          [
+              _Tp=float
+          ]
+D:\david\HumanTeleop\HL2MarkerTracking\HL2MarkerTracking\MarkerTracker.cpp(164,23): warning C4244: 'initializing': conversion from '_Tp' to 'int', possible loss of data
+          with
+          [
+              _Tp=float
+          ]
+D:\david\HumanTeleop\HL2MarkerTracking\HL2MarkerTracking\MarkerTracker.cpp(168,33): warning C4838: conversion from 'int' to 'float' requires a narrowing conversion
+D:\david\HumanTeleop\HL2MarkerTracking\HL2MarkerTracking\MarkerTracker.cpp(168,33): warning C4244: 'initializing': conversion from 'int' to 'float', possible loss of data
+D:\david\HumanTeleop\HL2MarkerTracking\HL2MarkerTracking\MarkerTracker.cpp(168,37): warning C4838: conversion from 'int' to 'float' requires a narrowing conversion
+D:\david\HumanTeleop\HL2MarkerTracking\HL2MarkerTracking\MarkerTracker.cpp(168,37): warning C4244: 'initializing': conversion from 'int' to 'float', possible loss of data
+D:\david\HumanTeleop\HL2MarkerTracking\HL2MarkerTracking\MarkerTracker.cpp(209,45): warning C4458: declaration of 'contours' hides class member
+D:\david\HumanTeleop\HL2MarkerTracking\HL2MarkerTracking\MarkerTracker.h(62,14): message : see declaration of 'winrt::HL2MarkerTracking::implementation::MarkerTracker::contours'
+D:\david\HumanTeleop\HL2MarkerTracking\HL2MarkerTracking\MarkerTracker.cpp(221,26): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
+D:\david\HumanTeleop\HL2MarkerTracking\HL2MarkerTracking\MarkerTracker.cpp(226,25): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
+D:\david\HumanTeleop\HL2MarkerTracking\HL2MarkerTracking\MarkerTracker.cpp(257,31): warning C4305: '=': truncation from 'double' to 'float'
+D:\david\HumanTeleop\HL2MarkerTracking\HL2MarkerTracking\MarkerTracker.cpp(279,17): warning C4189: 'hr': local variable is initialized but not referenced
+D:\david\HumanTeleop\HL2MarkerTracking\HL2MarkerTracking\MarkerTracker.cpp(367,27): warning C4244: 'return': conversion from '_Rep' to 'long', possible loss of data
+          with
+          [
+              _Rep=__int64
+          ]
+D:\david\HumanTeleop\HL2MarkerTracking\HL2MarkerTracking\MarkerTracker.cpp(400,53): warning C4267: 'argument': conversion from 'size_t' to 'const _Ty', possible loss of data
+          with
+          [
+              _Ty=int
+          ]
+D:\david\HumanTeleop\HL2MarkerTracking\HL2MarkerTracking\MarkerTracker.cpp(597,50): warning C4267: 'argument': conversion from 'size_t' to 'const _Ty', possible loss of data
+          with
+          [
+              _Ty=int
+          ]
+D:\david\HumanTeleop\HL2MarkerTracking\HL2MarkerTracking\MarkerTracker.cpp(601,50): warning C4267: 'argument': conversion from 'size_t' to 'const _Ty', possible loss of data
+          with
+          [
+              _Ty=int
+          ]
+     Creating library D:\david\HumanTeleop\HL2MarkerTracking\ARM64\Release\HL2MarkerTracking\HL2MarkerTracking.lib and object D:\david\HumanTeleop\HL2MarkerTracking\ARM64\Release\HL2MarkerTracking\HL2MarkerTracking.exp
+  Generating code
+  Finished generating code
+  HL2MarkerTracking.vcxproj -> D:\david\HumanTeleop\HL2MarkerTracking\ARM64\Release\HL2MarkerTracking\HL2MarkerTracking.dll

@@ -1,0 +1,78 @@
+﻿  MarkerTracker.cpp
+D:\TeleSonics\Instrumentation\irtracking\IrMarkerTrackingUwp\IrMarkerTracking\IrMarkerTracking\IrMarkerTracking.h(4,1): warning C4005: 'WINAPI_FAMILY': macro redefinition
+D:\TeleSonics\Instrumentation\irtracking\IrMarkerTrackingUwp\IrMarkerTracking\IrMarkerTracking\IrMarkerTracking.h(4,1): message : 'WINAPI_FAMILY' previously declared on the command line
+D:\TeleSonics\Instrumentation\irtracking\IrMarkerTrackingUwp\IrMarkerTracking\IrMarkerTracking\IrMarkerTracking.h(110,20): warning C4251: 'IrTracker::m_device_T_depth': class 'Eigen::Transform<double,3,1,0>' needs to have dll-interface to be used by clients of class 'IrTracker'
+D:\TeleSonics\Instrumentation\irtracking\Deps\Eigen3\include\eigen3\Eigen\src\Geometry\Transform.h(706,9): message : see declaration of 'Eigen::Transform<double,3,1,0>'
+D:\TeleSonics\Instrumentation\irtracking\IrMarkerTrackingUwp\IrMarkerTracking\IrMarkerTracking\IrMarkerTracking.h(130,13): warning C4251: 'IrTracker::m_paramMutex': class 'std::mutex' needs to have dll-interface to be used by clients of class 'IrTracker'
+C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.37.32822\include\mutex(132,19): message : see declaration of 'std::mutex'
+D:\TeleSonics\Instrumentation\irtracking\IrMarkerTrackingUwp\IrMarkerTracking\IrMarkerTracking\IrMarkerTracking.h(132,76): warning C4251: 'IrTracker::m_imagePointToCameraUnitPlane': class 'std::function<void (const std::array<double,2> &,std::array<double,2> &)>' needs to have dll-interface to be used by clients of class 'IrTracker'
+D:\TeleSonics\Instrumentation\irtracking\IrMarkerTrackingUwp\IrMarkerTracking\IrMarkerTracking\IrMarkerTracking.h(76,32): message : see declaration of 'std::function<void (const std::array<double,2> &,std::array<double,2> &)>'
+D:\TeleSonics\Instrumentation\irtracking\IrMarkerTrackingUwp\IrMarkerTracking\IrMarkerTracking\PoseTracker.h(32,29): warning C4251: 'PoseTracker::m_irTracker': class 'std::shared_ptr<IrTracker>' needs to have dll-interface to be used by clients of class 'PoseTracker'
+D:\TeleSonics\Instrumentation\irtracking\IrMarkerTrackingUwp\IrMarkerTracking\IrMarkerTracking\PoseTracker.h(10,28): message : see declaration of 'std::shared_ptr<IrTracker>'
+D:\TeleSonics\Instrumentation\irtracking\IrMarkerTrackingUwp\IrMarkerTracking\IrMarkerTracking\PoseTracker.h(35,24): warning C4251: 'PoseTracker::m_markerGeom': class 'std::vector<Eigen::Vector3d,std::allocator<Eigen::Vector3d>>' needs to have dll-interface to be used by clients of class 'PoseTracker'
+D:\TeleSonics\Instrumentation\irtracking\IrMarkerTrackingUwp\IrMarkerTracking\IrMarkerTracking\IrMarkerTracking.h(25,8): message : see declaration of 'std::vector<Eigen::Vector3d,std::allocator<Eigen::Vector3d>>'
+D:\TeleSonics\Instrumentation\irtracking\IrMarkerTrackingUwp\IrMarkerTracking\IrMarkerTracking\PoseTracker.h(36,11): warning C4251: 'PoseTracker::m_markerDiffs': class 'Eigen::Matrix<double,-1,-1,0,-1,-1>' needs to have dll-interface to be used by clients of class 'PoseTracker'
+D:\TeleSonics\Instrumentation\irtracking\Deps\Eigen3\include\eigen3\Eigen\src\Core\Matrix.h(503,1): message : see declaration of 'Eigen::Matrix<double,-1,-1,0,-1,-1>'
+D:\TeleSonics\Instrumentation\irtracking\IrMarkerTrackingUwp\IrMarkerTracking\IrMarkerTracking\PoseTracker.h(39,13): warning C4251: 'PoseTracker::m_poseMutex': class 'std::mutex' needs to have dll-interface to be used by clients of class 'PoseTracker'
+C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.37.32822\include\mutex(132,19): message : see declaration of 'std::mutex'
+D:\TeleSonics\Instrumentation\irtracking\IrMarkerTrackingUwp\IrMarkerTracking\IrMarkerTracking\PoseTracker.h(40,13): warning C4251: 'PoseTracker::m_camMutex': class 'std::mutex' needs to have dll-interface to be used by clients of class 'PoseTracker'
+C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.37.32822\include\mutex(132,19): message : see declaration of 'std::mutex'
+D:\TeleSonics\Instrumentation\irtracking\IrMarkerTrackingUwp\IrMarkerTracking\IrMarkerTracking\PoseTracker.h(43,13): warning C4251: 'PoseTracker::m_objectPose': class 'Eigen::Transform<double,3,1,0>' needs to have dll-interface to be used by clients of class 'PoseTracker'
+D:\TeleSonics\Instrumentation\irtracking\Deps\Eigen3\include\eigen3\Eigen\src\Geometry\Transform.h(706,9): message : see declaration of 'Eigen::Transform<double,3,1,0>'
+D:\TeleSonics\Instrumentation\irtracking\IrMarkerTrackingUwp\IrMarkerTracking\IrMarkerTracking\PoseTracker.h(46,86): warning C4251: 'PoseTracker::m_detectionQ': class 'moodycamel::ReaderWriterQueue<std::future<std::shared_ptr<IrTracker::IrDetection>>,512>' needs to have dll-interface to be used by clients of class 'PoseTracker'
+D:\TeleSonics\Instrumentation\irtracking\IrMarkerTrackingUwp\IrMarkerTracking\IrMarkerTracking\PoseTracker.h(46,14): message : see declaration of 'moodycamel::ReaderWriterQueue<std::future<std::shared_ptr<IrTracker::IrDetection>>,512>'
+D:\TeleSonics\Instrumentation\irtracking\IrMarkerTrackingUwp\IrMarkerTracking\IrMarkerTracking\PoseTracker.h(49,31): warning C4251: 'PoseTracker::m_detectionThread': class 'std::shared_ptr<std::thread>' needs to have dll-interface to be used by clients of class 'PoseTracker'
+D:\TeleSonics\Instrumentation\irtracking\IrMarkerTrackingUwp\IrMarkerTracking\IrMarkerTracking\PoseTracker.h(49,7): message : see declaration of 'std::shared_ptr<std::thread>'
+D:\TeleSonics\Instrumentation\irtracking\IrMarkerTrackingUwp\IrMarkerTracking\IrMarkerTracking\PoseTracker.h(52,20): warning C4251: 'PoseTracker::m_runDetectionThread': struct 'std::atomic<bool>' needs to have dll-interface to be used by clients of class 'PoseTracker'
+C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.37.32822\include\atomic(2761,33): message : see declaration of 'std::atomic<bool>'
+D:\TeleSonics\Instrumentation\irtracking\IrMarkerTrackingUwp\IrMarkerTracking\IrMarkerTracking\PoseTracker.h(69,24): warning C4251: 'PoseTracker::m_lastPoints': class 'std::vector<Eigen::Vector3d,std::allocator<Eigen::Vector3d>>' needs to have dll-interface to be used by clients of class 'PoseTracker'
+D:\TeleSonics\Instrumentation\irtracking\IrMarkerTrackingUwp\IrMarkerTracking\IrMarkerTracking\IrMarkerTracking.h(25,8): message : see declaration of 'std::vector<Eigen::Vector3d,std::allocator<Eigen::Vector3d>>'
+D:\TeleSonics\Instrumentation\irtracking\IrMarkerTrackingUwp\IrMarkerTracking\IrMarkerTracking\PoseTracker.h(77,14): warning C4251: 'PoseTracker::m_lastRot': class 'Eigen::Quaternion<double,0>' needs to have dll-interface to be used by clients of class 'PoseTracker'
+D:\TeleSonics\Instrumentation\irtracking\Deps\Eigen3\include\eigen3\Eigen\src\Geometry\Quaternion.h(373,9): message : see declaration of 'Eigen::Quaternion<double,0>'
+D:\TeleSonics\Instrumentation\irtracking\IrMarkerTrackingUwp\IrMarkerTracking\IrMarkerTracking\PoseTracker.h(78,11): warning C4251: 'PoseTracker::m_lastPos': class 'Eigen::Matrix<double,3,1,0,3,1>' needs to have dll-interface to be used by clients of class 'PoseTracker'
+D:\TeleSonics\Instrumentation\irtracking\Deps\Eigen3\include\eigen3\Eigen\src\Core\Matrix.h(503,1): message : see declaration of 'Eigen::Matrix<double,3,1,0,3,1>'
+D:\TeleSonics\Instrumentation\irtracking\IrMarkerTrackingUwp\IrMarkerTracking\IrMarkerTracking\PoseTracker.h(81,32): warning C4251: 'PoseTracker::m_perm3': class 'std::vector<std::vector<int,std::allocator<int>>,std::allocator<std::vector<int,std::allocator<int>>>>' needs to have dll-interface to be used by clients of class 'PoseTracker'
+D:\TeleSonics\Instrumentation\irtracking\Deps\opencv\include\opencv2\features2d.hpp(1568,24): message : see declaration of 'std::vector<std::vector<int,std::allocator<int>>,std::allocator<std::vector<int,std::allocator<int>>>>'
+D:\TeleSonics\Instrumentation\irtracking\IrMarkerTrackingUwp\IrMarkerTracking\IrMarkerTracking\PoseTracker.h(82,32): warning C4251: 'PoseTracker::m_perm4': class 'std::vector<std::vector<int,std::allocator<int>>,std::allocator<std::vector<int,std::allocator<int>>>>' needs to have dll-interface to be used by clients of class 'PoseTracker'
+D:\TeleSonics\Instrumentation\irtracking\Deps\opencv\include\opencv2\features2d.hpp(1568,24): message : see declaration of 'std::vector<std::vector<int,std::allocator<int>>,std::allocator<std::vector<int,std::allocator<int>>>>'
+D:\TeleSonics\Instrumentation\irtracking\IrMarkerTrackingUwp\IrMarkerTracking\IrMarkerTracking\PoseTracker.h(83,32): warning C4251: 'PoseTracker::m_perm5': class 'std::vector<std::vector<int,std::allocator<int>>,std::allocator<std::vector<int,std::allocator<int>>>>' needs to have dll-interface to be used by clients of class 'PoseTracker'
+D:\TeleSonics\Instrumentation\irtracking\Deps\opencv\include\opencv2\features2d.hpp(1568,24): message : see declaration of 'std::vector<std::vector<int,std::allocator<int>>,std::allocator<std::vector<int,std::allocator<int>>>>'
+D:\TeleSonics\Instrumentation\irtracking\HL2MarkerTracking\HL2MarkerTracking\MarkerTracker.h(155,27): warning C4324: 'winrt::HL2MarkerTracking::implementation::MarkerTracker': structure was padded due to alignment specifier
+D:\TeleSonics\Instrumentation\irtracking\HL2MarkerTracking\HL2MarkerTracking\MarkerTracker.h(166,31): warning C4305: 'initializing': truncation from 'double' to 'float'
+D:\TeleSonics\Instrumentation\irtracking\HL2MarkerTracking\HL2MarkerTracking\MarkerTracker.h(167,31): warning C4305: 'initializing': truncation from 'double' to 'float'
+D:\TeleSonics\Instrumentation\irtracking\HL2MarkerTracking\HL2MarkerTracking\MarkerTracker.h(168,31): warning C4305: 'initializing': truncation from 'double' to 'float'
+D:\TeleSonics\Instrumentation\irtracking\HL2MarkerTracking\HL2MarkerTracking\MarkerTracker.h(169,31): warning C4305: 'initializing': truncation from 'double' to 'float'
+D:\TeleSonics\Instrumentation\irtracking\HL2MarkerTracking\HL2MarkerTracking\MarkerTracker.cpp(35,17): warning C4189: 'hr': local variable is initialized but not referenced
+D:\TeleSonics\Instrumentation\irtracking\HL2MarkerTracking\HL2MarkerTracking\MarkerTracker.cpp(175,41): warning C4838: conversion from 'const _Ty' to 'float' requires a narrowing conversion
+          with
+          [
+              _Ty=double
+          ]
+D:\TeleSonics\Instrumentation\irtracking\HL2MarkerTracking\HL2MarkerTracking\MarkerTracker.cpp(175,41): warning C4244: 'initializing': conversion from 'const _Ty' to 'float', possible loss of data
+          with
+          [
+              _Ty=double
+          ]
+D:\TeleSonics\Instrumentation\irtracking\HL2MarkerTracking\HL2MarkerTracking\MarkerTracker.cpp(175,48): warning C4838: conversion from 'const _Ty' to 'float' requires a narrowing conversion
+          with
+          [
+              _Ty=double
+          ]
+D:\TeleSonics\Instrumentation\irtracking\HL2MarkerTracking\HL2MarkerTracking\MarkerTracker.cpp(175,48): warning C4244: 'initializing': conversion from 'const _Ty' to 'float', possible loss of data
+          with
+          [
+              _Ty=double
+          ]
+D:\TeleSonics\Instrumentation\irtracking\HL2MarkerTracking\HL2MarkerTracking\MarkerTracker.cpp(181,159): warning C4244: 'argument': conversion from 'float' to 'int', possible loss of data
+D:\TeleSonics\Instrumentation\irtracking\HL2MarkerTracking\HL2MarkerTracking\MarkerTracker.cpp(181,130): warning C4244: 'argument': conversion from 'float' to 'int', possible loss of data
+D:\TeleSonics\Instrumentation\irtracking\HL2MarkerTracking\HL2MarkerTracking\MarkerTracker.cpp(181,101): warning C4244: 'argument': conversion from 'float' to 'int', possible loss of data
+D:\TeleSonics\Instrumentation\irtracking\HL2MarkerTracking\HL2MarkerTracking\MarkerTracker.cpp(181,72): warning C4244: 'argument': conversion from 'float' to 'int', possible loss of data
+D:\TeleSonics\Instrumentation\irtracking\HL2MarkerTracking\HL2MarkerTracking\MarkerTracker.cpp(218,27): warning C4244: 'return': conversion from '_Rep' to 'long', possible loss of data
+          with
+          [
+              _Rep=__int64
+          ]
+     Creating library D:\TeleSonics\Instrumentation\irtracking\HL2MarkerTracking\ARM\Release\HL2MarkerTracking\HL2MarkerTracking.lib and object D:\TeleSonics\Instrumentation\irtracking\HL2MarkerTracking\ARM\Release\HL2MarkerTracking\HL2MarkerTracking.exp
+  Generating code
+  Finished generating code
+  HL2MarkerTracking.vcxproj -> D:\TeleSonics\Instrumentation\irtracking\HL2MarkerTracking\ARM\Release\HL2MarkerTracking\HL2MarkerTracking.dll

@@ -1,0 +1,37 @@
+namespace HL2MarkerTracking
+{
+    [default_interface]
+    runtimeclass MarkerTracker
+    {
+        MarkerTracker(Single[] geometry, Single[] extrinsicsCorrection, Boolean verbose);
+        
+        UInt16[] GetRawDepthMap();
+        UInt8[] GetProcessedDepthMap();
+        UInt16[] GetRawIrImage();
+        UInt8[] GetProcessedIrImage();
+
+        UInt8[] GetLfImage(out Int64 ts);
+        UInt8[] GetRfImage(out Int64 ts);
+        UInt8[] GetLrfImages(out Int64 ts_left, out Int64 ts_right);
+
+        void SetROI(Int32 x, Int32 y, Int32 w);
+        void SetDevicePose(Single[] pose);
+        Double[] GetObjectPose();
+        void SetParams(Int32 minArea, Int32 maxArea, Int32 binThreshold, Single convexity, Single circularity, Single smoothing, Boolean contours, Boolean m_saveIrImages, Boolean saveDepthImages, Boolean saveLeftImages, Boolean saveRightImages, Boolean saveRaw);
+        void SetExtrinsicsOffset(Single[] ext);
+
+        Boolean DepthMapUpdated();
+        Boolean IrImageUpdated();
+        Boolean LfImageUpdated();
+        Boolean RfImageUpdated();
+
+        void InitializeDepthSensor();
+        void InitializeStereoCamerasFront();
+        void StartDepthSensorLoop();
+        void StartStereoCamerasFrontLoop();
+
+        void StopAllSensorDevice();
+
+        void SetReferenceCoordinateSystem(Windows.Perception.Spatial.SpatialCoordinateSystem refCoord);
+    }
+}

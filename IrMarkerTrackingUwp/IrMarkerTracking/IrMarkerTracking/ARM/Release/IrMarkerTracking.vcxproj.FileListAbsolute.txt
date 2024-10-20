@@ -1,0 +1,16 @@
+D:\TeleSonics\Instrumentation\irtracking\IrMarkerTrackingUwp\IrMarkerTracking\ARM\Release\IrMarkerTracking\IrMarkerTracking.pri
+D:\TeleSonics\Instrumentation\irtracking\IrMarkerTrackingUwp\IrMarkerTracking\IrMarkerTracking\ARM\Release\priconfig.xml
+D:\TeleSonics\Instrumentation\irtracking\IrMarkerTrackingUwp\IrMarkerTracking\IrMarkerTracking\ARM\Release\priconfig.xml.intermediate
+D:\TeleSonics\Instrumentation\irtracking\IrMarkerTrackingUwp\IrMarkerTracking\IrMarkerTracking\ARM\Release\unfiltered.layout.resfiles
+D:\TeleSonics\Instrumentation\irtracking\IrMarkerTrackingUwp\IrMarkerTracking\IrMarkerTracking\ARM\Release\unfiltered.layout.resfiles.intermediate
+D:\TeleSonics\Instrumentation\irtracking\IrMarkerTrackingUwp\IrMarkerTracking\IrMarkerTracking\ARM\Release\filtered.layout.resfiles
+D:\TeleSonics\Instrumentation\irtracking\IrMarkerTrackingUwp\IrMarkerTracking\IrMarkerTracking\ARM\Release\filtered.layout.resfiles.intermediate
+D:\TeleSonics\Instrumentation\irtracking\IrMarkerTrackingUwp\IrMarkerTracking\IrMarkerTracking\ARM\Release\excluded.layout.resfiles
+D:\TeleSonics\Instrumentation\irtracking\IrMarkerTrackingUwp\IrMarkerTracking\IrMarkerTracking\ARM\Release\excluded.layout.resfiles.intermediate
+D:\TeleSonics\Instrumentation\irtracking\IrMarkerTrackingUwp\IrMarkerTracking\IrMarkerTracking\ARM\Release\resources.resfiles
+D:\TeleSonics\Instrumentation\irtracking\IrMarkerTrackingUwp\IrMarkerTracking\IrMarkerTracking\ARM\Release\resources.resfiles.intermediate
+D:\TeleSonics\Instrumentation\irtracking\IrMarkerTrackingUwp\IrMarkerTracking\IrMarkerTracking\ARM\Release\pri.resfiles
+D:\TeleSonics\Instrumentation\irtracking\IrMarkerTrackingUwp\IrMarkerTracking\IrMarkerTracking\ARM\Release\pri.resfiles.intermediate
+D:\TeleSonics\Instrumentation\irtracking\IrMarkerTrackingUwp\IrMarkerTracking\IrMarkerTracking\ARM\Release\qualifiers.txt
+D:\TeleSonics\Instrumentation\irtracking\IrMarkerTrackingUwp\IrMarkerTracking\IrMarkerTracking\ARM\Release\qualifiers.txt.intermediate
+D:\TeleSonics\Instrumentation\irtracking\IrMarkerTrackingUwp\IrMarkerTracking\IrMarkerTracking\ARM\Release\MultipleQualifiersPerDimensionFound.txt

@@ -1,0 +1,13 @@
+﻿  IrMarkerTracking.cpp
+D:\TeleSonics\Instrumentation\irtracking\IrMarkerTrackingUwp\IrMarkerTracking\IrMarkerTracking\IrMarkerTracking.h(4,1): warning C4005: 'WINAPI_FAMILY': macro redefinition
+D:\TeleSonics\Instrumentation\irtracking\IrMarkerTrackingUwp\IrMarkerTracking\IrMarkerTracking\IrMarkerTracking.h(4,1): message : 'WINAPI_FAMILY' previously declared on the command line
+D:\TeleSonics\Instrumentation\irtracking\IrMarkerTrackingUwp\IrMarkerTracking\IrMarkerTracking\IrMarkerTracking.h(110,20): warning C4251: 'IrTracker::m_device_T_depth': class 'Eigen::Transform<double,3,1,0>' needs to have dll-interface to be used by clients of class 'IrTracker'
+D:\TeleSonics\Instrumentation\irtracking\Deps\Eigen3\include\eigen3\Eigen\src\Geometry\Transform.h(706,9): message : see declaration of 'Eigen::Transform<double,3,1,0>'
+D:\TeleSonics\Instrumentation\irtracking\IrMarkerTrackingUwp\IrMarkerTracking\IrMarkerTracking\IrMarkerTracking.h(130,13): warning C4251: 'IrTracker::m_paramMutex': class 'std::mutex' needs to have dll-interface to be used by clients of class 'IrTracker'
+C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.37.32822\include\mutex(132,19): message : see declaration of 'std::mutex'
+D:\TeleSonics\Instrumentation\irtracking\IrMarkerTrackingUwp\IrMarkerTracking\IrMarkerTracking\IrMarkerTracking.h(132,76): warning C4251: 'IrTracker::m_imagePointToCameraUnitPlane': class 'std::function<void (const std::array<double,2> &,std::array<double,2> &)>' needs to have dll-interface to be used by clients of class 'IrTracker'
+D:\TeleSonics\Instrumentation\irtracking\IrMarkerTrackingUwp\IrMarkerTracking\IrMarkerTracking\IrMarkerTracking.h(76,32): message : see declaration of 'std::function<void (const std::array<double,2> &,std::array<double,2> &)>'
+     Creating library D:\TeleSonics\Instrumentation\irtracking\IrMarkerTrackingUwp\IrMarkerTracking\ARM\Release\IrMarkerTracking\IrMarkerTracking.lib and object D:\TeleSonics\Instrumentation\irtracking\IrMarkerTrackingUwp\IrMarkerTracking\ARM\Release\IrMarkerTracking\IrMarkerTracking.exp
+  Generating code
+  Finished generating code
+  IrMarkerTracking.vcxproj -> D:\TeleSonics\Instrumentation\irtracking\IrMarkerTrackingUwp\IrMarkerTracking\ARM\Release\IrMarkerTracking\IrMarkerTracking.dll
