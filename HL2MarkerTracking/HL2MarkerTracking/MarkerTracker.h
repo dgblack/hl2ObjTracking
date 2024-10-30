@@ -14,7 +14,9 @@ namespace winrt::HL2MarkerTracking::implementation
         /// Create the MarkerTracker object
         /// @param geometry the marker locations in local coordinates, stored as [x1, y1, z1, x2, y2, z2, ...]
         /// @param extrinsicsCorrection a homogeneous matrix for correcting the extrinsics of the ResearchMode API. Applied from the left to the extrinsics matrix. Pass as 16-element array in row-major form
-        MarkerTracker(array_view<float const> geometry, array_view<float const> extrinsicsCorrection, bool verbose = false);
+        /// @param markerDiameter the diameter (in metres) of the IR reflective spheres
+        /// @param verbose tru to print a lot of debug information or false to print only errors
+        MarkerTracker(array_view<float const> geometry, array_view<float const> extrinsicsCorrection, float markerDiameter, bool verbose = false);
         
         /// Set ROI within which to search for the markers
         /// @param x the column of the centre point of the ROI
@@ -37,12 +39,24 @@ namespace winrt::HL2MarkerTracking::implementation
         /// @param saveRaw saves the raw 16-bit depth and IR images if true. Otherwise compresses to 8-bit
         void SetParams(int minArea, int maxArea, int binThreshold, float convexity, float circularity, float smoothing, bool contours, bool saveIrImages, bool saveDepthImages, bool saveLeftImages, bool saveRightImages, bool saveRaw);
         
+        /// Turn on/off filtering for larger jumps in marker position, and adjust the settings
+        /// @param doFilter activate/deactiveate the filter
+        /// @param threhsold the distance (metres) above which an inter-frame change in position is considered a jump. If filtering is on, this measurement will be ignored
+        /// @param nFrames when the position has jumped but stays in the new position for nFrames frames, the new position is considered correct
+        void SetJumpSettings(bool doFilter, float threshold, int nFrames);
+
         /// @param ext a homogeneous matrix for correcting the extrinsics of the ResearchMode API. Applied from the left to the extrinsics matrix. Pass as 16-element array in row-major form
         void SetExtrinsicsOffset(array_view<float const> ext);
+
+        bool HasNewPose();
 
         /// Get the most recent pose of the tracked object
         /// @returns 16-element array containing the homogeneous matrix in row-major order
         com_array<double> GetObjectPose();
+
+        /// Get the most recent pose of the tracked object as well the raw positions of the measured markers
+        /// @returns 16-element array containing the homogeneous matrix in row-major order, followed by the marker positions as 3-vectors
+        com_array<double> GetObjectPoseAndMarkers();
 
         /// Update the device (eg. MR headset) pose relative to the world.
         /// Used to compute the points in world coordinates and should be called every frame.

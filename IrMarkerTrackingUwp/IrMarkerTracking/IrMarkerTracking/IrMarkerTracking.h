@@ -24,6 +24,7 @@ public:
 	struct IrDetection {
 		std::vector<Eigen::Vector3d> points;
 		std::vector<Eigen::Vector2i> imCoords;
+		std::vector<float> markerDiameters;
 		Eigen::Isometry3d devicePose;
 	};
 
@@ -33,11 +34,11 @@ public:
 	IrTracker(const int width, const int height, LogLevel logLevel = LogLevel::Silent);
 
 	/// Set the rectangular region of const interest in the image in which to search for the markers.
-	/// @param x the column of the centre of the ROI
-	/// @param y the row of the centre of the ROI
-	/// @param w the width of the ROI
-	/// @param h the height of the ROI
-	void setROI(const int x, const int y, const int w, const int h);
+	/// @param xMax the column of the left edge of the ROI
+	/// @param xMax the column of the right edge of the ROI
+	/// @param yMin the row of the top edge of the ROI
+	/// @param yMax the row of the bottom edge of the ROI
+	Eigen::Vector4i setROI(int xMin, int xMax, int yMin, int yMax);
 
 	/// Parameter settings
 	/// @param minArea the minimum area blob to consider as a potential marker (units of pixels)
@@ -95,6 +96,9 @@ public:
 	/// Return the log level verbosity setting
 	LogLevel getLogLevel();
 
+	int getWidth();
+	int getHeight();
+
 private:
 	// CV settings
 	int m_minArea = 2;
@@ -110,10 +114,10 @@ private:
 	Eigen::Isometry3d m_device_T_depth;
 
 	// Region of Interest for search
-	int m_xCrop = 0;
-	int m_yCrop = 0;
-	int m_wCrop = 512;
-	int m_hCrop = 512;
+	int m_xMaxCrop = 511;
+	int m_yMaxCrop = 511;
+	int m_xMinCrop = 0;
+	int m_yMinCrop = 0;
 
 	// Camera settings
 	int m_depthCamRoiLowerRow = 511;
@@ -131,5 +135,5 @@ private:
 
 	std::function<void(const std::array<double, 2>&, std::array<double, 2>&)> m_imagePointToCameraUnitPlane;
 	bool blobDetect(cv::Mat& im, std::vector<cv::KeyPoint>& keypoints);
-	bool contourDetect(cv::Mat& im, std::vector<cv::KeyPoint>& keypoints);	
+	bool contourDetect(cv::Mat& im, std::vector<cv::KeyPoint>& keypoints);
 };

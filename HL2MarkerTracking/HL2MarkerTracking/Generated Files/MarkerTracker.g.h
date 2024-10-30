@@ -29,9 +29,9 @@ namespace winrt::HL2MarkerTracking::factory_implementation
         {
             return L"HL2MarkerTracking.MarkerTracker";
         }
-        auto CreateInstance(array_view<float const> geometry, array_view<float const> extrinsicsCorrection, bool verbose)
+        auto CreateInstance(array_view<float const> geometry, array_view<float const> extrinsicsCorrection, float markerDiameter, bool verbose)
         {
-            return make<T>(geometry, extrinsicsCorrection, verbose);
+            return make<T>(geometry, extrinsicsCorrection, markerDiameter, verbose);
         }
         [[noreturn]] winrt::Windows::Foundation::IInspectable ActivateInstance() const
         {

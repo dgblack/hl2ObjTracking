@@ -6,8 +6,8 @@ void* winrt_make_HL2MarkerTracking_MarkerTracker()
 }
 WINRT_EXPORT namespace winrt::HL2MarkerTracking
 {
-    MarkerTracker::MarkerTracker(array_view<float const> geometry, array_view<float const> extrinsicsCorrection, bool verbose) :
-        MarkerTracker(make<HL2MarkerTracking::implementation::MarkerTracker>(geometry, extrinsicsCorrection, verbose))
+    MarkerTracker::MarkerTracker(array_view<float const> geometry, array_view<float const> extrinsicsCorrection, float markerDiameter, bool verbose) :
+        MarkerTracker(make<HL2MarkerTracking::implementation::MarkerTracker>(geometry, extrinsicsCorrection, markerDiameter, verbose))
     {
     }
 }

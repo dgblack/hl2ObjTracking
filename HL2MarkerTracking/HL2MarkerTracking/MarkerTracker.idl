@@ -3,7 +3,7 @@ namespace HL2MarkerTracking
     [default_interface]
     runtimeclass MarkerTracker
     {
-        MarkerTracker(Single[] geometry, Single[] extrinsicsCorrection, Boolean verbose);
+        MarkerTracker(Single[] geometry, Single[] extrinsicsCorrection, Single markerDiameter, Boolean verbose);
         
         UInt16[] GetRawDepthMap();
         UInt8[] GetProcessedDepthMap();
@@ -16,8 +16,11 @@ namespace HL2MarkerTracking
 
         void SetROI(Int32 x, Int32 y, Int32 w);
         void SetDevicePose(Single[] pose);
+        Boolean HasNewPose();
         Double[] GetObjectPose();
+        Double[] GetObjectPoseAndMarkers();
         void SetParams(Int32 minArea, Int32 maxArea, Int32 binThreshold, Single convexity, Single circularity, Single smoothing, Boolean contours, Boolean m_saveIrImages, Boolean saveDepthImages, Boolean saveLeftImages, Boolean saveRightImages, Boolean saveRaw);
+        void SetJumpSettings(Boolean doFilter, Single threshold, Int32 nFrames);
         void SetExtrinsicsOffset(Single[] ext);
 
         Boolean DepthMapUpdated();

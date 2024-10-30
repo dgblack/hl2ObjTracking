@@ -21,8 +21,8 @@ namespace winrt::impl
     template <> inline constexpr auto& name_v<winrt::HL2MarkerTracking::MarkerTracker> = L"HL2MarkerTracking.MarkerTracker";
     template <> inline constexpr auto& name_v<winrt::HL2MarkerTracking::IMarkerTracker> = L"HL2MarkerTracking.IMarkerTracker";
     template <> inline constexpr auto& name_v<winrt::HL2MarkerTracking::IMarkerTrackerFactory> = L"HL2MarkerTracking.IMarkerTrackerFactory";
-    template <> inline constexpr guid guid_v<winrt::HL2MarkerTracking::IMarkerTracker>{ 0x0E5856A2,0xC2F5,0x539B,{ 0xB7,0xA7,0x67,0xB5,0xD7,0xE3,0xB6,0x34 } }; // 0E5856A2-C2F5-539B-B7A7-67B5D7E3B634
-    template <> inline constexpr guid guid_v<winrt::HL2MarkerTracking::IMarkerTrackerFactory>{ 0x13C48375,0x3EDB,0x545E,{ 0xA7,0x7F,0x46,0x04,0x30,0x41,0x94,0x78 } }; // 13C48375-3EDB-545E-A77F-460430419478
+    template <> inline constexpr guid guid_v<winrt::HL2MarkerTracking::IMarkerTracker>{ 0x47DE7911,0x2DE8,0x5249,{ 0x8C,0xBB,0x42,0xAB,0x0D,0x90,0xCB,0xA7 } }; // 47DE7911-2DE8-5249-8CBB-42AB0D90CBA7
+    template <> inline constexpr guid guid_v<winrt::HL2MarkerTracking::IMarkerTrackerFactory>{ 0x972DCDFE,0x01A9,0x5B0C,{ 0x92,0xAA,0xAD,0x45,0x23,0xF7,0xA0,0xB8 } }; // 972DCDFE-01A9-5B0C-92AA-AD4523F7A0B8
     template <> struct default_interface<winrt::HL2MarkerTracking::MarkerTracker>{ using type = winrt::HL2MarkerTracking::IMarkerTracker; };
     template <> struct abi<winrt::HL2MarkerTracking::IMarkerTracker>
     {
@@ -37,8 +37,11 @@ namespace winrt::impl
             virtual int32_t __stdcall GetLrfImages(int64_t*, int64_t*, uint32_t* __resultSize, uint8_t**) noexcept = 0;
             virtual int32_t __stdcall SetROI(int32_t, int32_t, int32_t) noexcept = 0;
             virtual int32_t __stdcall SetDevicePose(uint32_t, float*) noexcept = 0;
+            virtual int32_t __stdcall HasNewPose(bool*) noexcept = 0;
             virtual int32_t __stdcall GetObjectPose(uint32_t* __resultSize, double**) noexcept = 0;
+            virtual int32_t __stdcall GetObjectPoseAndMarkers(uint32_t* __resultSize, double**) noexcept = 0;
             virtual int32_t __stdcall SetParams(int32_t, int32_t, int32_t, float, float, float, bool, bool, bool, bool, bool, bool) noexcept = 0;
+            virtual int32_t __stdcall SetJumpSettings(bool, float, int32_t) noexcept = 0;
             virtual int32_t __stdcall SetExtrinsicsOffset(uint32_t, float*) noexcept = 0;
             virtual int32_t __stdcall DepthMapUpdated(bool*) noexcept = 0;
             virtual int32_t __stdcall IrImageUpdated(bool*) noexcept = 0;
@@ -56,7 +59,7 @@ namespace winrt::impl
     {
         struct __declspec(novtable) type : inspectable_abi
         {
-            virtual int32_t __stdcall CreateInstance(uint32_t, float*, uint32_t, float*, bool, void**) noexcept = 0;
+            virtual int32_t __stdcall CreateInstance(uint32_t, float*, uint32_t, float*, float, bool, void**) noexcept = 0;
         };
     };
     template <typename D>
@@ -71,8 +74,11 @@ namespace winrt::impl
         auto GetLrfImages(int64_t& ts_left, int64_t& ts_right) const;
         auto SetROI(int32_t x, int32_t y, int32_t w) const;
         auto SetDevicePose(array_view<float const> pose) const;
+        auto HasNewPose() const;
         auto GetObjectPose() const;
+        auto GetObjectPoseAndMarkers() const;
         auto SetParams(int32_t minArea, int32_t maxArea, int32_t binThreshold, float convexity, float circularity, float smoothing, bool contours, bool m_saveIrImages, bool saveDepthImages, bool saveLeftImages, bool saveRightImages, bool saveRaw) const;
+        auto SetJumpSettings(bool doFilter, float threshold, int32_t nFrames) const;
         auto SetExtrinsicsOffset(array_view<float const> ext) const;
         auto DepthMapUpdated() const;
         auto IrImageUpdated() const;
@@ -92,7 +98,7 @@ namespace winrt::impl
     template <typename D>
     struct consume_HL2MarkerTracking_IMarkerTrackerFactory
     {
-        auto CreateInstance(array_view<float const> geometry, array_view<float const> extrinsicsCorrection, bool verbose) const;
+        auto CreateInstance(array_view<float const> geometry, array_view<float const> extrinsicsCorrection, float markerDiameter, bool verbose) const;
     };
     template <> struct consume<winrt::HL2MarkerTracking::IMarkerTrackerFactory>
     {

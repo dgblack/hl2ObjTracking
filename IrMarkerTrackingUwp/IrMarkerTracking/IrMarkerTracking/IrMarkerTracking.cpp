@@ -9,8 +9,8 @@ IrTracker::IrTracker(int width, int height, LogLevel logLevel)
 {
     m_device_T_depth.setIdentity();
 
-    m_wCrop = width;
-    m_hCrop = height;
+    m_xMaxCrop = width - 1;
+    m_yMaxCrop = height - 1;
 
     // Default to normalized coordinates
     m_imagePointToCameraUnitPlane = [width, height](const std::array<double, 2>& uv, std::array<double, 2>& xy) {
@@ -19,33 +19,28 @@ IrTracker::IrTracker(int width, int height, LogLevel logLevel)
         };
 }
 
-void IrTracker::setROI(int x, int y, int w, int h) {
-    // Sanity checks
-    if (w <= 10 || h <= 10) {
+Vector4i IrTracker::setROI(int xMin, int xMax, int yMin, int yMax) {
+    // Keep within the bounds of the camera
+    if (xMin < m_depthCamRoiLeftCol) xMin = m_depthCamRoiLeftCol;
+    if (yMin < m_depthCamRoiUpperRow) yMin = m_depthCamRoiUpperRow;
+    if (xMax > m_depthCamRoiRightCol) xMax = m_depthCamRoiRightCol;
+    if (yMax > m_depthCamRoiLowerRow) yMax = m_depthCamRoiLowerRow;
+
+    if (xMax - xMin <= 10 || yMax - yMin <= 10) {
         std::cerr << "ROI width or height too small" << std::endl;
-        return;
+        return Vector4i{m_xMinCrop, m_xMaxCrop, m_yMinCrop, m_yMaxCrop};
     }
-    if (x < 0) x = 0;
-    if (y < 0) y = 0;
-
-    // Top left corner
-    int xl = x - (int)(w / 2);
-    int yl = y - (int)(w / 2);
-
-    // More sanity checks
-    if (xl < 0) xl = 0;
-    if (yl < 0) yl = 0;
-    if (xl + w >= m_imWidth) w = m_imWidth - xl - 1;
-    if (yl + h >= m_imHeight) h = m_imHeight - yl - 1;
 
     if (m_logLevel == LogLevel::VeryVerbose)
-        LOG << "Set ROI to " << xl << ", " << yl << ", " << w << ", " << h;
+        LOG << "Set ROI to " << xMin << ", " << xMax << ", " << yMin << ", " << yMax;
 
     std::scoped_lock<std::mutex> l(m_paramMutex);
-    m_xCrop = xl;
-    m_yCrop = yl;
-    m_wCrop = w;
-    m_hCrop = h;
+    m_xMinCrop = xMin;
+    m_yMinCrop = yMin;
+    m_xMaxCrop = xMax;
+    m_yMaxCrop = yMax;
+
+    return Vector4i{ xMin, xMax, yMin, yMax };
 }
 
 void IrTracker::setSearchParams(int minArea, int maxArea, int binThreshold, float convexity, float circularity, DetectionMode detectMode) {
@@ -110,7 +105,13 @@ void IrTracker::setCameraBoundaries(int roiUpperRow, int roiLowerRow, int roiLef
     m_depthCamRoiRightCol = roiRightCol;
     m_depthNearClip = nearClipPlane;
     m_depthFarClip = farClipPlane;
-    
+
+    // Update the ROI so it cuts off at the correct boundaries if it is currently searching the whole image
+    if (m_xMaxCrop == m_imWidth - 1 && m_yMaxCrop == m_imHeight - 1 && m_xMinCrop == 0 && m_yMinCrop == 0) {
+        setROI(m_xMinCrop, m_xMaxCrop, m_yMinCrop, m_yMaxCrop);
+    }
+
+
     if (m_logLevel == LogLevel::VeryVerbose)
         LOG << "Top row " << m_depthCamRoiUpperRow << ", bottom row " << m_depthCamRoiLowerRow << ", left col " << m_depthCamRoiLeftCol << ", right col " << m_depthCamRoiRightCol << ", near " << m_depthNearClip << ", far " << m_depthFarClip;
 }
@@ -118,20 +119,26 @@ void IrTracker::setCameraBoundaries(int roiUpperRow, int roiLowerRow, int roiLef
 IrTracker::LogLevel IrTracker::getLogLevel() {
     return m_logLevel;
 }
+int IrTracker::getWidth() {
+    return m_imWidth;
+}
+int IrTracker::getHeight() {
+    return m_imHeight;
+}
 
 std::shared_ptr<IrTracker::IrDetection> IrTracker::findKeypointsWorldFrame(std::unique_ptr<std::vector<uint16_t>> reflIm, std::unique_ptr<std::vector<uint16_t>> depthMap, const Eigen::Isometry3d& devicePose) {
     auto detection = std::make_shared<IrDetection>();
     detection->devicePose = Isometry3d(devicePose);
 
     // Freeze the parameters for now
-    int xCrop, yCrop, wCrop, hCrop, width, height;
+    int xMinCrop, yMinCrop, xMaxCrop, yMaxCrop, width, height;
     Isometry3d device_T_depth;
     {
         std::scoped_lock<std::mutex> l(m_paramMutex);
-        xCrop = m_xCrop;
-        yCrop = m_yCrop;
-        wCrop = m_wCrop;
-        hCrop = m_hCrop;
+        xMinCrop = m_xMinCrop;
+        yMinCrop = m_yMinCrop;
+        xMaxCrop = m_xMaxCrop;
+        yMaxCrop = m_yMaxCrop;
         width = m_imWidth;
         height = m_imHeight;
         device_T_depth = Isometry3d(m_device_T_depth);
@@ -147,14 +154,17 @@ std::shared_ptr<IrTracker::IrDetection> IrTracker::findKeypointsWorldFrame(std::
         return detection;
     }
 
+    if (m_logLevel == LogLevel::VeryVerbose)
+        LOG << "Cropping image to ROI";
+
     // Scale contrast so it uses whole range
     // Also crop the image to the ROI
-    const std::vector<int> croppedSz = { wCrop, hCrop };
+    const std::vector<int> croppedSz = { yMaxCrop - yMinCrop + 1, xMaxCrop - xMinCrop + 1 };
     cv::Mat im8b = cv::Mat(croppedSz, CV_8UC1);
-    for (int x = xCrop; x < xCrop + wCrop; x++) {
-        for (int y = yCrop; y < yCrop + hCrop; y++) {
+    for (int x = xMinCrop; x <= xMaxCrop; x++) {
+        for (int y = yMinCrop; y <= yMaxCrop; y++) {
             uint16_t el = im.at<uint16_t>(y, x);
-            int xc = x - xCrop;  int yc = y - yCrop;
+            int xc = x - xMinCrop;  int yc = y - yMinCrop;
             if (el > 1000)
                 im8b.at<uchar>(yc, xc) = 255;
             else
@@ -163,24 +173,29 @@ std::shared_ptr<IrTracker::IrDetection> IrTracker::findKeypointsWorldFrame(std::
     }
 
     if (m_logLevel == LogLevel::VeryVerbose)
-        LOG << "Cropped image to " << wCrop << " x " << hCrop << " at [" << xCrop << ", " << yCrop << "]";
+        LOG << "Cropped image to (" << xMinCrop << ", " << yMinCrop << "),  (" << xMaxCrop << ", " << yMaxCrop << ")";
 
     bool success = false;
     std::vector<cv::KeyPoint> keypoints;
+    auto start = std::chrono::steady_clock::now();
     if (m_mode == DetectionMode::Contour)
         success = contourDetect(im8b, keypoints);
     else // Use blob detection
         success = blobDetect(im8b, keypoints);
+    if (m_logLevel == LogLevel::VeryVerbose)
+        LOG << "Elapsed while searching: " << std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::steady_clock::now() - start).count() << " us";
 
     // Map to 3D
     if (success) {
-        if (m_logLevel == LogLevel::VeryVerbose)
+        if (m_logLevel == LogLevel::VeryVerbose) {
             LOG << "Found " << keypoints.size() << " points";
+            LOG << "Extrinsics: " << device_T_depth.matrix();
+        }
         // Save the 3D points
         for (size_t i = 0; i < keypoints.size(); i++) {
             // Point in image array
-            double x = keypoints[i].pt.x + xCrop;
-            double y = keypoints[i].pt.y + yCrop;
+            double x = keypoints[i].pt.x + xMinCrop;
+            double y = keypoints[i].pt.y + yMinCrop;
             int xInt = static_cast<int>(std::round(x));
             int yInt = static_cast<int>(std::round(y));
 
@@ -210,25 +225,39 @@ std::shared_ptr<IrTracker::IrDetection> IrTracker::findKeypointsWorldFrame(std::
             // Apply transformation
             Vector3d pointInHl = device_T_depth * pt;
             if (m_logLevel == LogLevel::VeryVerbose) {
-                LOG << "Extrinsics: " << device_T_depth.matrix();
                 LOG << "In camera frame: " << pt;
                 LOG << "In HoloLens frame: " << pointInHl;
             }
 
+            // Also find the diameter of the blob in the world coordinates
+            auto left = (x - keypoints[i].size / 2 > 0) ? x - keypoints[i].size / 2 : 0;
+            auto right = (x + keypoints[i].size / 2 < 512) ? x + keypoints[i].size / 2 : 511;
+            std::array<double, 2> xyL = { 0, 0 };
+            std::array<double, 2> uvL = { left , y };
+            m_imagePointToCameraUnitPlane(uvL, xyL);
+            std::array<double, 2> xyR = { 0, 0 };
+            std::array<double, 2> uvR = { right , y };
+            m_imagePointToCameraUnitPlane(uvR, xyR);
+            auto leftPoint = Vector3d(xyL[0], xyL[1], 1);
+            auto rightPoint = Vector3d(xyR[0], xyR[1], 1);
+            leftPoint = ((double)depth) / 1000.0 * leftPoint.normalized();
+            rightPoint = ((double)depth) / 1000.0 * rightPoint.normalized();
+            double diam = (rightPoint - leftPoint).norm();
+
             // Save the points
             detection->points.push_back(pointInHl);
             detection->imCoords.emplace_back(xInt, yInt);
+            detection->markerDiameters.push_back(diam);
         }
     }
     else {
-        setROI(256, 256, 512, 512);
         if (m_logLevel == LogLevel::Verbose)
             LOG << "Did not find any markers";
     }
 
     if (m_logLevel == LogLevel::Verbose)
         LOG << "Returning IR detection with " << detection->points.size() << " points";
-    
+
     return detection;
 }
 
@@ -267,10 +296,13 @@ bool IrTracker::contourDetect(cv::Mat& im, std::vector<cv::KeyPoint>& keypoints)
         }
         x /= contours[i].size();
         y /= contours[i].size();
-        keypoints.push_back(cv::KeyPoint(x, y, 0));
+
+        cv::KeyPoint p(x, y, 0);
+        p.size = radius * 2;
+        keypoints.push_back(p);
     }
 
-    return (contours.size() > 0);
+    return !keypoints.empty();
 }
 
 bool IrTracker::blobDetect(cv::Mat& im, std::vector<cv::KeyPoint>& keypoints) {
@@ -281,10 +313,10 @@ bool IrTracker::blobDetect(cv::Mat& im, std::vector<cv::KeyPoint>& keypoints) {
     params.minThreshold = 10;
     params.maxThreshold = 255;
     params.filterByArea = true;
-    params.minArea = 2; // size in pixels
-    params.maxArea = 1000;
+    params.minArea = m_minArea; // size in pixels
+    params.maxArea = m_maxArea;
     params.filterByConvexity = true;
-    params.minConvexity = 0.8f;
+    params.minConvexity = m_convexity;
 
     params.minDistBetweenBlobs = 1;
     params.filterByInertia = false;
@@ -295,7 +327,6 @@ bool IrTracker::blobDetect(cv::Mat& im, std::vector<cv::KeyPoint>& keypoints) {
 
     // Detect keypoints
     detector->detect(im, keypoints);
-    if (keypoints.empty())
-        return false;
-    return true;
+
+    return !keypoints.empty();
 }

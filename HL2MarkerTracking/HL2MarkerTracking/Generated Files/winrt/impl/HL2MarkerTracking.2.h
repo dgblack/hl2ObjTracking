@@ -10,7 +10,7 @@ WINRT_EXPORT namespace winrt::HL2MarkerTracking
     {
         MarkerTracker(std::nullptr_t) noexcept {}
         MarkerTracker(void* ptr, take_ownership_from_abi_t) noexcept : winrt::HL2MarkerTracking::IMarkerTracker(ptr, take_ownership_from_abi) {}
-        MarkerTracker(array_view<float const> geometry, array_view<float const> extrinsicsCorrection, bool verbose);
+        MarkerTracker(array_view<float const> geometry, array_view<float const> extrinsicsCorrection, float markerDiameter, bool verbose);
     };
 }
 #endif

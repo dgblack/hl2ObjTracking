@@ -26,7 +26,7 @@ namespace winrt::HL2MarkerTracking::implementation
         std::cout << "[HL2MarkerTracking] " << st << std::endl;
     }
 
-    MarkerTracker::MarkerTracker(array_view<float const> geometry, array_view<float const> extrinsicsCorrection, bool verbose)
+    MarkerTracker::MarkerTracker(array_view<float const> geometry, array_view<float const> extrinsicsCorrection, float markerDiameter, bool verbose)
     {
         // Load Research Mode library
         camConsentGiven = CreateEvent(nullptr, true, false, nullptr);
@@ -84,12 +84,16 @@ namespace winrt::HL2MarkerTracking::implementation
         else LOG << "Extrinsics correction matrix had incorrect size of " << extrinsicsCorrection.size();
 
         // Create the IR image processor and pose tracker
-        m_irTracker = std::make_shared<IrTracker>(512, 512, (verbose) ? IrTracker::LogLevel::Verbose : IrTracker::LogLevel::Silent);
-        m_poseTracker = std::make_shared<PoseTracker>(m_irTracker, points, true);
+        m_irTracker = std::make_shared<IrTracker>(512, 512, (verbose) ? IrTracker::LogLevel::VeryVerbose : IrTracker::LogLevel::Silent);
+        m_poseTracker = std::make_shared<PoseTracker>(m_irTracker, points, markerDiameter, true);
     }
 
     void MarkerTracker::SetROI(int x, int y, int w) {
         m_irTracker->setROI(x, y, w, w);
+    }
+
+    void MarkerTracker::SetJumpSettings(bool doFilter, float threshold, int nFrames) {
+        m_poseTracker->setJumpSettings(doFilter, threshold, nFrames);
     }
 
     void MarkerTracker::SetParams(int minArea, int maxArea, int binThreshold, float convexity, float circularity, float smoothing, bool contours, bool saveIrImages, bool saveDepthImages, bool saveLeftImages, bool saveRightImages, bool saveRaw) {
@@ -129,6 +133,10 @@ namespace winrt::HL2MarkerTracking::implementation
         else LOG << "Extrinsics correction matrix had incorrect size of " << ext.size();
     }
 
+    bool MarkerTracker::HasNewPose() {
+        return m_poseTracker->hasNewPose();
+    }
+
     com_array<double> MarkerTracker::GetObjectPose() {
         auto pose = m_poseTracker->getPose();
 
@@ -136,6 +144,23 @@ namespace winrt::HL2MarkerTracking::implementation
         for (int i = 0; i < 4; i++)
             for (int j = 0; j < 4; j++)
                 arr[i * 4 + j] = pose(i, j);
+
+        return arr;
+    }
+
+    com_array<double> MarkerTracker::GetObjectPoseAndMarkers() {
+        auto pose = m_poseTracker->getLastMeasurement();
+
+        auto arr = com_array<double>(16 + pose.markerPositions.size()*3);
+        for (int i = 0; i < 4; i++)
+            for (int j = 0; j < 4; j++)
+                arr[i * 4 + j] = pose.pose.matrix()(i, j);
+
+        for (int i = 0; i < pose.markerPositions.size(); i++) {
+            arr[16 + i * 3] = pose.markerPositions[0][0];
+            arr[16 + i * 3 + 1] = pose.markerPositions[0][1];
+            arr[16 + i * 3 + 2] = pose.markerPositions[0][2];
+        }
 
         return arr;
     }

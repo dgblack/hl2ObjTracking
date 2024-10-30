@@ -56,17 +56,22 @@ public class IRTracker : MonoBehaviour
     public int binThreshold = 222;
     public float convexity = 0.75f;
     public float circularity = 0.6f;
+    public float markerDiameter = 0.01f;
+    public float jumpThreshold = 0.1f;
+    public int nJumpFrames = 3;
+    public bool filterJumps = false;
     public bool contours = true;
     public bool saveIrImages = false;
-    public bool saveDepthMaps = false;
+    public bool saveDepthMaps = true;
     public StereoSaveMode saveStereoImages = StereoSaveMode.None;
-    public bool saveRaw = false;
+    public bool saveRaw = true;
     public bool showRawMarkers = false;
     public bool showPreview = false;
     public bool verbose = true;
-    [NonSerialized] public Vector3 trackOffset = new Vector3(-0.0375f, 0.0494f, 0.0522f); // From experimentation
-    [NonSerialized] public Vector3 eulerOffset = new Vector3(-1, 5.5f, -1.1f); // From experimentation
-    [NonSerialized] public bool hasPose = false;    
+    [NonSerialized] public Vector3 trackOffset = new Vector3(-0.0375f, 0.0494f, 0.0522f);
+    [NonSerialized] public Vector3 eulerOffset = new Vector3(-1, 5.5f, -1.1f);
+    [NonSerialized] public bool hasPose = false;
+    private int numFlippedFrames = 0;
 
     public List<Transform> geometry; // Used to define the marker geometry
     public Transform cameraPose; // Set to the MainCamera so it gives the HoloLens's pose
@@ -115,8 +120,9 @@ public class IRTracker : MonoBehaviour
             extOffset[i] = extrinsicsOffset[i];
 
 #if ENABLE_WINMD_SUPPORT
-        researchMode = new MarkerTracker(geomVec, extOffset, verbose);
+        researchMode = new MarkerTracker(geomVec, extOffset, markerDiameter, verbose);
         SetParams();
+        SetJumpFilter();
 
         researchMode.InitializeDepthSensor();
         if (saveStereoImages != StereoSaveMode.None) {
@@ -139,6 +145,7 @@ public class IRTracker : MonoBehaviour
         // Get current HoloLens pose as vector
         Matrix4x4 T = Matrix4x4.TRS(cameraPose.position, cameraPose.rotation, Vector3.one);
         Matrix4x4 objPose = Matrix4x4.identity;
+        List<Vector3> markerPositions = new();
         float[] Tvec = new float[16];
         for (int i = 0; i < 4; i++)
             for (int j = 0; j < 4; j++)
@@ -147,46 +154,67 @@ public class IRTracker : MonoBehaviour
 #if ENABLE_WINMD_SUPPORT
         researchMode.SetDevicePose(Tvec);
 
-        double[] poseVec = researchMode.GetObjectPose();
-        for (int i = 0; i < 4; i++)
-            for (int j = 0; j < 4; j++)
-                objPose[i,j] = (float)poseVec[i * 4 + j];
-#endif
+        if (researchMode.HasNewPose()) {
+            double[] poseVec = researchMode.GetObjectPoseAndMarkers();
+            for (int i = 0; i < 4; i++)
+                for (int j = 0; j < 4; j++)
+                    objPose[i,j] = (float)poseVec[i * 4 + j];
 
-        if (objPose != Matrix4x4.identity)
-        {
-            hasPose = true;
-            transform.SetPositionAndRotation(objPose.GetPosition(), objPose.rotation);
-            if (transform.position != lastPosition) 
+            for (int i = 16; i < poseVec.Length; i+=3) {
+                if (i+2 >= poseVec.Length) break;
+                Vector3 v = new Vector3((float)poseVec[i],(float)poseVec[i+1],(float)poseVec[i+1]);
+                markerPositions.Add(v);
+            }
+
+            if (objPose != Matrix4x4.identity)
             {
-                lastPosition = transform.position;
-                lastRotation = transform.rotation;
-                lastUpdateTime = Timer.GetTime();
+                // Ignore sudden, large angle changes which happen if the system thinks the markers are flipped
+                if (Quaternion.Angle(objPose.rotation,transform.rotation) > 75) {
+                    numFlippedFrames++;
+                    if (numFlippedFrames >= 4)
+                        numFlippedFrames = 0;
+                    else
+                        return;
+                }
+
+                hasPose = true;
+                transform.SetPositionAndRotation(objPose.GetPosition(), objPose.rotation);
+                if (transform.position != lastPosition) 
+                {
+                    lastPosition = transform.position;
+                    lastRotation = transform.rotation;
+                    lastUpdateTime = Timer.GetTime();
                 
+                }
+            }
+
+            if (showRawMarkers)
+            {
+                int[] idxs = new int[markerPositions.Count];
+                for (int i = 0; i < idxs.Length; i++) idxs[i] = i;
+                ShowRawMarkers(markerPositions, idxs);
             }
         }
+#endif
     }
 
     async void LateUpdate()
     {
 #if ENABLE_WINMD_SUPPORT // Is there a synchronization problem if we use depth and reflectivity images from different times? (i.e. a new depth image arrives while we're processing the refl image)
         // update short-throw reflectivity texture - actually we don't have any use for the images
-        if (saveIrImages) {
-            if (researchMode.IrImageUpdated())
-            {
-                if (saveRaw && OnRawIrImage != null) {
-                    UInt16[] frameTexture = researchMode.GetRawIrImage();
-                    if (frameTexture.Length > 0)
-                            OnRawIrImage.Invoke(frameTexture);
-                } else if (OnIrImage != null) {
-                    byte[] frameTexture = researchMode.GetProcessedIrImage();
-                    if (frameTexture.Length > 0 && OnIrImage != null)
-                            OnIrImage.Invoke(frameTexture);
-                }
+        if (saveIrImages && researchMode.IrImageUpdated()) {
+            if (saveRaw && OnRawIrImage != null) {
+                UInt16[] frameTexture = researchMode.GetRawIrImage();
+                if (frameTexture.Length > 0)
+                    OnRawIrImage.Invoke(frameTexture);
+            } else if (OnIrImage != null) {
+                byte[] frameTexture = researchMode.GetProcessedIrImage();
+                if (frameTexture.Length > 0 && OnIrImage != null)
+                        OnIrImage.Invoke(frameTexture);
             }
         }
 
-        if (saveDepthMaps) {
+        if (saveDepthMaps && researchMode.DepthMapUpdated()) {
             if (saveRaw && OnRawDepthMap != null) {
                 UInt16[] frameTexture = researchMode.GetRawDepthMap();
                 if (frameTexture.Length > 0)

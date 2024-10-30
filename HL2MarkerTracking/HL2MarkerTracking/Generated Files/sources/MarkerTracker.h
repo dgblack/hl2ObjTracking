@@ -26,7 +26,7 @@ namespace winrt::HL2MarkerTracking::implementation
     {
         MarkerTracker() = default;
 
-        MarkerTracker(array_view<float const> geometry, array_view<float const> extrinsicsCorrection, bool verbose);
+        MarkerTracker(array_view<float const> geometry, array_view<float const> extrinsicsCorrection, float markerDiameter, bool verbose);
         com_array<uint16_t> GetRawDepthMap();
         com_array<uint8_t> GetProcessedDepthMap();
         com_array<uint16_t> GetRawIrImage();
@@ -36,8 +36,11 @@ namespace winrt::HL2MarkerTracking::implementation
         com_array<uint8_t> GetLrfImages(int64_t& ts_left, int64_t& ts_right);
         void SetROI(int32_t x, int32_t y, int32_t w);
         void SetDevicePose(array_view<float const> pose);
+        bool HasNewPose();
         com_array<double> GetObjectPose();
+        com_array<double> GetObjectPoseAndMarkers();
         void SetParams(int32_t minArea, int32_t maxArea, int32_t binThreshold, float convexity, float circularity, float smoothing, bool contours, bool m_saveIrImages, bool saveDepthImages, bool saveLeftImages, bool saveRightImages, bool saveRaw);
+        void SetJumpSettings(bool doFilter, float threshold, int32_t nFrames);
         void SetExtrinsicsOffset(array_view<float const> ext);
         bool DepthMapUpdated();
         bool IrImageUpdated();

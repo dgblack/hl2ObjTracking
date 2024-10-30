@@ -67,6 +67,12 @@ namespace winrt::impl
     {
         check_hresult(WINRT_IMPL_SHIM(winrt::HL2MarkerTracking::IMarkerTracker)->SetDevicePose(pose.size(), get_abi(pose)));
     }
+    template <typename D> auto consume_HL2MarkerTracking_IMarkerTracker<D>::HasNewPose() const
+    {
+        bool result{};
+        check_hresult(WINRT_IMPL_SHIM(winrt::HL2MarkerTracking::IMarkerTracker)->HasNewPose(&result));
+        return result;
+    }
     template <typename D> auto consume_HL2MarkerTracking_IMarkerTracker<D>::GetObjectPose() const
     {
         uint32_t result_impl_size{};
@@ -74,9 +80,20 @@ namespace winrt::impl
         check_hresult(WINRT_IMPL_SHIM(winrt::HL2MarkerTracking::IMarkerTracker)->GetObjectPose(&result_impl_size, &result));
         return com_array<double>{ result, result_impl_size, take_ownership_from_abi };
     }
+    template <typename D> auto consume_HL2MarkerTracking_IMarkerTracker<D>::GetObjectPoseAndMarkers() const
+    {
+        uint32_t result_impl_size{};
+        double* result{};
+        check_hresult(WINRT_IMPL_SHIM(winrt::HL2MarkerTracking::IMarkerTracker)->GetObjectPoseAndMarkers(&result_impl_size, &result));
+        return com_array<double>{ result, result_impl_size, take_ownership_from_abi };
+    }
     template <typename D> auto consume_HL2MarkerTracking_IMarkerTracker<D>::SetParams(int32_t minArea, int32_t maxArea, int32_t binThreshold, float convexity, float circularity, float smoothing, bool contours, bool m_saveIrImages, bool saveDepthImages, bool saveLeftImages, bool saveRightImages, bool saveRaw) const
     {
         check_hresult(WINRT_IMPL_SHIM(winrt::HL2MarkerTracking::IMarkerTracker)->SetParams(minArea, maxArea, binThreshold, convexity, circularity, smoothing, contours, m_saveIrImages, saveDepthImages, saveLeftImages, saveRightImages, saveRaw));
+    }
+    template <typename D> auto consume_HL2MarkerTracking_IMarkerTracker<D>::SetJumpSettings(bool doFilter, float threshold, int32_t nFrames) const
+    {
+        check_hresult(WINRT_IMPL_SHIM(winrt::HL2MarkerTracking::IMarkerTracker)->SetJumpSettings(doFilter, threshold, nFrames));
     }
     template <typename D> auto consume_HL2MarkerTracking_IMarkerTracker<D>::SetExtrinsicsOffset(array_view<float const> ext) const
     {
@@ -130,10 +147,10 @@ namespace winrt::impl
     {
         check_hresult(WINRT_IMPL_SHIM(winrt::HL2MarkerTracking::IMarkerTracker)->SetReferenceCoordinateSystem(*(void**)(&refCoord)));
     }
-    template <typename D> auto consume_HL2MarkerTracking_IMarkerTrackerFactory<D>::CreateInstance(array_view<float const> geometry, array_view<float const> extrinsicsCorrection, bool verbose) const
+    template <typename D> auto consume_HL2MarkerTracking_IMarkerTrackerFactory<D>::CreateInstance(array_view<float const> geometry, array_view<float const> extrinsicsCorrection, float markerDiameter, bool verbose) const
     {
         void* value{};
-        check_hresult(WINRT_IMPL_SHIM(winrt::HL2MarkerTracking::IMarkerTrackerFactory)->CreateInstance(geometry.size(), get_abi(geometry), extrinsicsCorrection.size(), get_abi(extrinsicsCorrection), verbose, &value));
+        check_hresult(WINRT_IMPL_SHIM(winrt::HL2MarkerTracking::IMarkerTrackerFactory)->CreateInstance(geometry.size(), get_abi(geometry), extrinsicsCorrection.size(), get_abi(extrinsicsCorrection), markerDiameter, verbose, &value));
         return winrt::HL2MarkerTracking::MarkerTracker{ value, take_ownership_from_abi };
     }
     template <typename D>
@@ -209,6 +226,13 @@ namespace winrt::impl
             return 0;
         }
         catch (...) { return to_hresult(); }
+        int32_t __stdcall HasNewPose(bool* result) noexcept final try
+        {
+            typename D::abi_guard guard(this->shim());
+            *result = detach_from<bool>(this->shim().HasNewPose());
+            return 0;
+        }
+        catch (...) { return to_hresult(); }
         int32_t __stdcall GetObjectPose(uint32_t* __resultSize, double** result) noexcept final try
         {
             clear_abi(result);
@@ -217,10 +241,25 @@ namespace winrt::impl
             return 0;
         }
         catch (...) { return to_hresult(); }
+        int32_t __stdcall GetObjectPoseAndMarkers(uint32_t* __resultSize, double** result) noexcept final try
+        {
+            clear_abi(result);
+            typename D::abi_guard guard(this->shim());
+            std::tie(*__resultSize, *result) = detach_abi(this->shim().GetObjectPoseAndMarkers());
+            return 0;
+        }
+        catch (...) { return to_hresult(); }
         int32_t __stdcall SetParams(int32_t minArea, int32_t maxArea, int32_t binThreshold, float convexity, float circularity, float smoothing, bool contours, bool m_saveIrImages, bool saveDepthImages, bool saveLeftImages, bool saveRightImages, bool saveRaw) noexcept final try
         {
             typename D::abi_guard guard(this->shim());
             this->shim().SetParams(minArea, maxArea, binThreshold, convexity, circularity, smoothing, contours, m_saveIrImages, saveDepthImages, saveLeftImages, saveRightImages, saveRaw);
+            return 0;
+        }
+        catch (...) { return to_hresult(); }
+        int32_t __stdcall SetJumpSettings(bool doFilter, float threshold, int32_t nFrames) noexcept final try
+        {
+            typename D::abi_guard guard(this->shim());
+            this->shim().SetJumpSettings(doFilter, threshold, nFrames);
             return 0;
         }
         catch (...) { return to_hresult(); }
@@ -305,11 +344,11 @@ namespace winrt::impl
     template <typename D>
     struct produce<D, winrt::HL2MarkerTracking::IMarkerTrackerFactory> : produce_base<D, winrt::HL2MarkerTracking::IMarkerTrackerFactory>
     {
-        int32_t __stdcall CreateInstance(uint32_t __geometrySize, float* geometry, uint32_t __extrinsicsCorrectionSize, float* extrinsicsCorrection, bool verbose, void** value) noexcept final try
+        int32_t __stdcall CreateInstance(uint32_t __geometrySize, float* geometry, uint32_t __extrinsicsCorrectionSize, float* extrinsicsCorrection, float markerDiameter, bool verbose, void** value) noexcept final try
         {
             clear_abi(value);
             typename D::abi_guard guard(this->shim());
-            *value = detach_from<winrt::HL2MarkerTracking::MarkerTracker>(this->shim().CreateInstance(array_view<float const>(reinterpret_cast<float const *>(geometry), reinterpret_cast<float const *>(geometry) + __geometrySize), array_view<float const>(reinterpret_cast<float const *>(extrinsicsCorrection), reinterpret_cast<float const *>(extrinsicsCorrection) + __extrinsicsCorrectionSize), verbose));
+            *value = detach_from<winrt::HL2MarkerTracking::MarkerTracker>(this->shim().CreateInstance(array_view<float const>(reinterpret_cast<float const *>(geometry), reinterpret_cast<float const *>(geometry) + __geometrySize), array_view<float const>(reinterpret_cast<float const *>(extrinsicsCorrection), reinterpret_cast<float const *>(extrinsicsCorrection) + __extrinsicsCorrectionSize), markerDiameter, verbose));
             return 0;
         }
         catch (...) { return to_hresult(); }

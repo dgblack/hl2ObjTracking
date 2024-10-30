@@ -1,8 +1,9 @@
 #include "PoseTracker.h"
 
-PoseTracker::PoseTracker(std::shared_ptr<IrTracker> irTracker, std::vector<Vector3d> geometry, bool unity)
+PoseTracker::PoseTracker(std::shared_ptr<IrTracker> irTracker, std::vector<Vector3d> geometry, float markerDiameter, bool unity)
     : m_irTracker(irTracker)
     , m_markerGeom(geometry)
+    , m_markerDiameter(markerDiameter)
     , m_unity(unity)
 {
     m_logLevel = irTracker->getLogLevel();
@@ -11,10 +12,16 @@ PoseTracker::PoseTracker(std::shared_ptr<IrTracker> irTracker, std::vector<Vecto
     m_detectionThread = std::make_shared<std::thread>([this]() { detectionThreadFunction(); });
     m_nPoints = geometry.size();
 
+    m_width = m_irTracker->getWidth();
+    m_height = m_irTracker->getHeight();
+    m_roi = { 0, m_width - 1, 0, m_height - 1 };
+
     // Create lists of permutations for brute force matching
     m_perm5 = recursiveCreateCombo(std::vector<int>{ 0, 1, 2, 3, 4 });
     m_perm4 = recursiveCreateCombo(std::vector<int>{ 0, 1, 2, 3 });
     m_perm3 = recursiveCreateCombo(std::vector<int>{ 0, 1, 2 });
+
+    m_objectPose = IRPose();
 
     // Create the matrix of distances between markers
     m_markerDiffs.setZero(m_nPoints, m_nPoints);
@@ -23,6 +30,8 @@ PoseTracker::PoseTracker(std::shared_ptr<IrTracker> irTracker, std::vector<Vecto
             LOG << "Geom: " << m_markerGeom[i][0] << ", " << m_markerGeom[i][1] << ", " << m_markerGeom[i][2];
         for (int j = 0; j < m_nPoints; j++) {
             m_markerDiffs(i, j) = (m_markerGeom[i] - m_markerGeom[j]).norm();
+            // Also save the greatest distance
+            if (m_markerDiffs(i, j) > m_maxPointDistance) m_maxPointDistance = m_markerDiffs(i, j);
         }
     }
 
@@ -43,14 +52,31 @@ PoseTracker::~PoseTracker() {
 
 Matrix4d PoseTracker::getPose() {
     std::scoped_lock<std::mutex> lock(m_poseMutex);
-    return m_objectPose.matrix();
+    m_hasNewPose = false;
+    return m_objectPose.pose.matrix();
+}
+
+PoseTracker::IRPose PoseTracker::getLastMeasurement() {
+    std::scoped_lock<std::mutex> lock(m_poseMutex);
+    m_hasNewPose = false;
+    return m_objectPose;
+}
+
+bool PoseTracker::hasRecentPose(uint64_t milliseconds) {
+    return time() - m_lastMeasTime <= milliseconds;
+}
+
+bool PoseTracker::hasNewPose() {
+    return m_hasNewPose;
 }
 
 void PoseTracker::update(const Isometry3d& world_T_cam, std::unique_ptr<std::vector<uint16_t>> irIm, std::unique_ptr<std::vector<uint16_t>> depthMap) {
     // Launch the keypoint search asynchronously and store the future to check later
-    //auto fut = std::async(std::launch::async, [this, T=world_T_cam, irIm=std::move(irIm), depth=std::move(depthMap)]() { return m_irTracker->FindKeypointsWorldFrame(irIm, depth, T); });
-    auto fut = std::async(std::launch::async, [this](const Isometry3d& T, std::unique_ptr<std::vector<uint16_t>> ir, std::unique_ptr<std::vector<uint16_t>> depth) { return m_irTracker->findKeypointsWorldFrame(std::move(ir), std::move(depth), T); }, world_T_cam, std::move(irIm), std::move(depthMap));
-    m_detectionQ.try_enqueue(std::move(fut));
+    //auto fut = std::async(std::launch::async, [this](const Isometry3d& T, std::unique_ptr<std::vector<uint16_t>> ir, std::unique_ptr<std::vector<uint16_t>> depth) { return m_irTracker->findKeypointsWorldFrame(std::move(ir), std::move(depth), T); }, world_T_cam, std::move(irIm), std::move(depthMap));
+    //m_detectionQ.try_enqueue(std::move(fut));
+
+    // Actually just pass the images to the queue
+    m_detectionQ.emplace(std::move(irIm), std::move(depthMap), world_T_cam);
 }
 
 void PoseTracker::setSmoothing(const float smoothing)
@@ -67,19 +93,23 @@ void PoseTracker::setJumpSettings(bool filterJumps, const float jumpThresholdMet
 void PoseTracker::detectionThreadFunction() {
     using namespace std::chrono_literals;
     while (m_runDetectionThread) {
-        // Try to pop a future from the queue
-        std::future<std::shared_ptr<IrTracker::IrDetection>> detec;
+        // Try to pop images from the queue
+        SensorPacket detec(nullptr, nullptr, Isometry3d::Identity());
         if (m_detectionQ.try_dequeue(detec)) {
+            auto detection = m_irTracker->findKeypointsWorldFrame(std::move(detec.irIm), std::move(detec.depthMap), detec.devicePose);
 
-            // Don't wait any longer than 100 ms. If not ready at this point, discard and move on to the next frame
-            auto res = detec.wait_for(100ms);
-
-            // Get the detection result and pass it on for further processing
-            if (res == std::future_status::ready) {
-                auto detection = detec.get();
-                if (preprocessMarkerDetection(detection))
-                    processMarkerDetection(detection);
+            if (detection->points.empty()) {
+                setRoi(m_roi[0] / 1.8, m_roi[1] * 1.25, m_roi[2] / 1.8, m_roi[3] * 1.25, m_roiBuffer);
+                std::this_thread::sleep_for(5ms);
+                continue;
             }
+
+            if (preprocessMarkerDetection(detection))
+                processMarkerDetection(detection);
+        }
+        else {
+            using namespace std::chrono_literals;
+            std::this_thread::sleep_for(5ms);
         }
     }
 }
@@ -89,17 +119,47 @@ double absval(double val) {
 }
 
 bool PoseTracker::preprocessMarkerDetection(std::shared_ptr<IrTracker::IrDetection> detection) {
-    // Remove obvious outliers
+    // Remove obvious outliers that are too close, too far, or completely the wrong size
     size_t i = 0;
     size_t init = detection->points.size();
     while (i < detection->points.size()) {
-        if (absval(detection->points[i][2]) > 2 || absval(detection->points[i][2]) < 0.05) {
+        if (absval(detection->points[i][2]) > 2 || absval(detection->points[i][2]) < 0.05) {// || absval(detection->markerDiameters[i] - m_markerDiameter) > m_markerDiameter / 2) {
             if (m_logLevel == IrTracker::LogLevel::VeryVerbose)
-                LOG << "Removing point " << detection->points[i][0] << ", " << detection->points[i][1] << ", " << detection->points[i][2];
+                LOG << "Removing outlier point [" << detection->points[i][0] << ", " << detection->points[i][1] << ", " << detection->points[i][2] << "] with diameter " << detection->markerDiameters[i];
             detection->points.erase(detection->points.begin() + i);
             detection->imCoords.erase(detection->imCoords.begin() + i);
+            detection->markerDiameters.erase(detection->markerDiameters.begin() + i);
         }
         else {
+            // Look for loners in terms of size and position
+            /*int numSimilarSize = 0;
+            int numClosePosition = 0;
+            for (int j = 0; j < detection->points.size(); j++) {
+                if (i == j) continue;
+
+                float ratio = detection->markerDiameters[i] / detection->markerDiameters[j];
+                if (ratio > 0.5 && ratio < 2)
+                    numSimilarSize++;
+
+                double d = (detection->points[i] - detection->points[j]).norm();
+                if (d < m_maxPointDistance * 1.5)
+                    numClosePosition++;
+            }
+            if (numSimilarSize < 2 || numClosePosition < 2) {
+                if (m_logLevel == IrTracker::LogLevel::VeryVerbose) {
+                    if (numSimilarSize < 2)
+                        LOG << "Removing outlier in size [" << detection->points[i][0] << ", " << detection->points[i][1] << ", " << detection->points[i][2] << "] with diameter " << detection->markerDiameters[i];
+                    else if (numClosePosition < 2)
+                        LOG << "Removing outlier in position [" << detection->points[i][0] << ", " << detection->points[i][1] << ", " << detection->points[i][2] << "] with diameter " << detection->markerDiameters[i];
+                    else
+                        LOG << "Removing outlier in size and position [" << detection->points[i][0] << ", " << detection->points[i][1] << ", " << detection->points[i][2] << "] with diameter " << detection->markerDiameters[i];
+                }
+                detection->points.erase(detection->points.begin() + i);
+                detection->imCoords.erase(detection->imCoords.begin() + i);
+                detection->markerDiameters.erase(detection->markerDiameters.begin() + i);
+                continue;
+            }*/
+
             // Convert coordinates to left-handed for Unity
             if (m_unity) {
                 auto tmp = detection->points[i][0];
@@ -117,9 +177,9 @@ bool PoseTracker::preprocessMarkerDetection(std::shared_ptr<IrTracker::IrDetecti
     if (m_logLevel == IrTracker::LogLevel::VeryVerbose)
         LOG << "Filtering kept " << detection->points.size() << " of " << init << " points";
 
-    // Not enough points left over?
+    // Not enough points left over? Increase the size of the ROI again
     if (detection->points.size() < 2) {
-        m_irTracker->setROI(256, 256, 512, 512);
+        setRoi(m_roi[0] / 1.8, m_roi[1] * 1.25, m_roi[2] / 1.8, m_roi[3] * 1.25, m_roiBuffer);
         return false;
     }
 
@@ -130,9 +190,10 @@ void PoseTracker::processMarkerDetection(std::shared_ptr<IrTracker::IrDetection>
     // ----------------------------------- Try to find point correspondences ---------------------------------------------
     // If the ith element of idxs equals j, then the ith measured point corresponds to the jth known point
     if (m_logLevel == IrTracker::LogLevel::VeryVerbose) {
-        std::string s = "";
+        std::string s = ""; int i = 0;
         for (const auto& v : detection->points) {
-            s += std::to_string(v[0]) + ", " + std::to_string(v[1]) + ", " + std::to_string(v[2]) + "; " + "\n";
+            s += std::to_string(v[0]) + ", " + std::to_string(v[1]) + ", " + std::to_string(v[2]) + "; Diameter: " + std::to_string(detection->markerDiameters[i]) + "\n";
+            i++;
         }
         LOG << s;
     }
@@ -216,10 +277,9 @@ void PoseTracker::processMarkerDetection(std::shared_ptr<IrTracker::IrDetection>
         // We found a good match
         if (m_logLevel == IrTracker::LogLevel::Verbose)
             LOG << "GOT POSE";
-        m_hasPose = true;
-        m_hadPose = true;
-        m_framesSinceLastPose = 0;
+        m_lastPoseTime = time();
         setPoseFromResult(detection, idxs);
+        m_hasNewPose = true;
         return;
     }
     if (m_logLevel == IrTracker::LogLevel::Verbose)
@@ -230,7 +290,6 @@ void PoseTracker::processMarkerDetection(std::shared_ptr<IrTracker::IrDetection>
 void PoseTracker::poseCalcFailed()
 {
     // Nothing worked. Don't use this sample
-    m_framesSinceLastPose++;
 }
 
 void PoseTracker::setPoseFromResult(std::shared_ptr<IrTracker::IrDetection> mes, const std::vector<int> idxs)
@@ -243,10 +302,12 @@ void PoseTracker::setPoseFromResult(std::shared_ptr<IrTracker::IrDetection> mes,
 
     // Set the current pose in a thread-safe way
     std::scoped_lock<std::mutex> lock(m_poseMutex);
-    m_objectPose = m_objectPose.fromPositionOrientationScale(m_lastPos, m_lastRot, Vector3d(1, 1, 1));
+    m_objectPose.pose = m_objectPose.pose.fromPositionOrientationScale(m_lastPos, m_lastRot, Vector3d(1, 1, 1));
+    m_objectPose.imageCoords = std::vector<Vector2i>(mes->imCoords);
+    m_objectPose.markerPositions = std::vector<Vector3d>(mes->points);
 
     // Also update the search area
-    int minX = 512; int minY = 512; int maxX = 0; int maxY = 0;
+    int minX = m_width; int minY = m_height; int maxX = 0; int maxY = 0;
     std::vector<Vector2i> markerImPoints;
     for (size_t j = 0; j < mes->imCoords.size(); j++)
     {
@@ -259,28 +320,47 @@ void PoseTracker::setPoseFromResult(std::shared_ptr<IrTracker::IrDetection> mes,
         }
     }
 
-    if (minX == 0 && minY == 0 && maxX == 512 && maxY == 512)
+    if (minX == 0 && minY == 0 && maxX == m_width && maxY == m_height)
     {
         //Debug.Log("No inlying points found");
         // Don't reset ROI here. It should only happen in one place, otherwise it gets out of hand. See the else for kps.Count < 0
     }
     else
     {
-        // Add a buffer around the markers to allow for some motion. Also make sure there's no overflow
-        auto maxval = [](int x, int y) { return (x > y) ? x : y; };
-        int width = (int)(maxval(maxX - minX, maxY - minY) * m_roiBuffer);
-        int xCrop = (maxX + minX) / 2;
-        int yCrop = (maxY + minY) / 2;
+        setRoi(minX, maxX, minY, maxY, m_roiBuffer);
+        //updateRoi(minX, maxX, minY, maxY);
+    }
+}
 
-        if (xCrop < 0 || yCrop < 0 || width < 0)
-        {
-            // something went wrong so set to defaults
-            xCrop = 256; yCrop = 256; width = 512;
-        }
+void PoseTracker::setRoi(int minX, int maxX, int minY, int maxY, int buffer) {
+    m_lastRoiTime = time();
+    m_roi = m_irTracker->setROI(minX - buffer, maxX + buffer, minY - buffer, maxY + buffer);
+}
 
-        m_irTracker->setROI(xCrop, yCrop, width, width);
+void PoseTracker::updateRoi(int minX, int maxX, int minY, int maxY) {
+    Vector4i newRoi = { minX, maxX, minY, maxY };
+
+    // If the ROI was not set, set it immediately to the new one but with a larger buffer
+    if (m_roi[0] == 0 && m_roi[1] == m_width - 1 && m_roi[2] == 0 && m_roi[3] == m_height - 1) {
+        setRoi(minX, maxX, minY, maxY, m_roiBuffer * 2);
     }
 
+    // Find the centres of the ROIs
+    Vector2d newRoiCentre = { (minX + maxX) / 2.0, (minY + maxY) / 2.0 };
+    Vector2d oldRoiCentre = { (m_roi[0] + m_roi[1]) / 2.0, (m_roi[2] + m_roi[3]) / 2.0 };
+
+    // Compute the velocity of the ROI
+    auto t = time();
+    auto dt = t - m_lastRoiTime;
+    m_lastRoiTime = t;
+    Vector2d newVel = (newRoiCentre - oldRoiCentre) / dt;
+
+    // Smooth the velocity a bit
+    Vector2d vel = m_roiSmoothing * m_roiVel + (1 - m_roiSmoothing) * newVel;
+
+    // Extrapolate the predicted position of the next ROI, assuming velocity and framerate stay constant with slight deceleration
+    Vector2d offset = dt * m_roiDeceleration * vel;
+    setRoi(minX + offset[0], maxX + offset[0], minY + offset[1], maxY + offset[1], m_roiBuffer);
 }
 
 double PoseTracker::fillInMissing(std::vector<Vector3d>& mes, std::vector<int>& idxs)
@@ -915,7 +995,7 @@ Quaterniond PoseTracker::slerp(const Quaterniond& q1, const Quaterniond& q2, con
     return q1.slerp(t, q2);
 }
 
-long long PoseTracker::time()
+uint64_t PoseTracker::time()
 {
     return std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
 }

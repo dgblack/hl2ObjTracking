@@ -7,7 +7,17 @@ using namespace Eigen;
 
 class __declspec(dllexport) PoseTracker {
 public:
-	explicit PoseTracker(std::shared_ptr<IrTracker> irTracker, std::vector<Vector3d> geometry, bool unity = false);
+	struct IRPose {
+		IRPose() {
+			pose = Isometry3d::Identity();
+		}
+
+		Isometry3d pose;
+		std::vector<Vector3d> markerPositions;
+		std::vector<Vector2i> imageCoords;
+	};
+
+	explicit PoseTracker(std::shared_ptr<IrTracker> irTracker, std::vector<Vector3d> geometry, float markerDiameter, bool unity = false);
 	~PoseTracker();
 
 	/// Update the tracking with a new set of images and the device pose
@@ -19,6 +29,15 @@ public:
 	/// Return the most recent computed pose of the tracked object
 	Matrix4d getPose();
 
+	/// Return not only the marker pose, but also the positions of the individual spheres in world and image coordinates
+	IRPose getLastMeasurement();
+
+	/// Return true if it measured a pose within the last n milliseconds
+	bool hasRecentPose(uint64_t milliseconds);
+
+	/// Return true if it has measured a pose that hasn't been fetched yet through getPose or getLastMeasurement
+	bool hasNewPose();
+
 	/// Set the smooothing (1 means it never updates and 0 means no smoothing)
 	void setSmoothing(const float smoothing);
 
@@ -29,6 +48,17 @@ public:
 	void setJumpSettings(bool filterJumps, const float jumpThresholdMetres, const int numFramesUntilSet);
 
 private:
+	struct SensorPacket {
+		SensorPacket(std::unique_ptr<std::vector<uint16_t>> ir, std::unique_ptr<std::vector<uint16_t>> depth, const Eigen::Isometry3d& pose)
+			: irIm(std::move(ir))
+			, depthMap(std::move(depth))
+			, devicePose(Eigen::Isometry3d(pose))
+		{}
+		std::unique_ptr<std::vector<uint16_t>> irIm;
+		std::unique_ptr<std::vector<uint16_t>> depthMap;
+		Eigen::Isometry3d devicePose;
+	};
+
 	/// The IR tracker which actually interacts with the images and finds the keypoints
 	std::shared_ptr<IrTracker> m_irTracker;
 
@@ -41,10 +71,11 @@ private:
 	std::mutex m_camMutex;
 
 	/// The current computed object pose
-	Isometry3d m_objectPose = Isometry3d::Identity();
+	//Isometry3d m_objectPose = Isometry3d::Identity();
+	IRPose m_objectPose;
 
-	/// Lockless, concurrent queue to store futures of ongoing IR detections
-	moodycamel::ReaderWriterQueue<std::future<std::shared_ptr<IrTracker::IrDetection>>> m_detectionQ;
+	/// Lockless, concurrent queue to pass images to IR detection thread
+	moodycamel::ReaderWriterQueue<SensorPacket> m_detectionQ;
 
 	/// Thread the continuously looks for new detections in the images and then handles the further processing
 	std::shared_ptr<std::thread> m_detectionThread;
@@ -54,17 +85,27 @@ private:
 
 	/// Some things for the specific tracking implementation
 	double m_matchThreshold = 0.008;
+	float m_maxPointDistance = 0;
+	float m_markerDiameter = 0.011; // metres
 	int m_voteThreshold = 1;
-	bool m_hasPose = false;
-	bool m_hadPose = false;
-	long m_framesSinceLastPose = 0;
+	std::atomic<bool> m_hasNewPose = false;
+	uint64_t m_lastPoseTime = 0;
 	bool m_extrapolate = false;
 	int m_nPoints;
-	float m_roiBuffer = 1.25f;
+	int m_roiBuffer = 25;
+	int m_width;
+	int m_height;
 
 	// Corrections for specific devices used with Unity (left-handed coordinates)
 	bool m_unity;
 	IrTracker::LogLevel m_logLevel;
+
+	// Search only a region of interest
+	Vector4i m_roi;
+	float m_roiSmoothing = 0.4f;
+	float m_roiDeceleration = 0.9f;
+	Eigen::Vector2d m_roiVel = { 0,0 };
+	uint64_t m_lastRoiTime = 0;
 
 	// Avoid big, sudden jumps
 	std::vector<Vector3d> m_lastPoints;
@@ -75,7 +116,7 @@ private:
 
 	// Smoothing
 	long long m_lastMeasTime = 0;
-	float m_smoothing = 0.9f;
+	double m_smoothing = 0.9;
 	Quaterniond m_lastRot = Quaterniond::Identity();
 	Vector3d m_lastPos = Vector3d(0, 0, 0);
 
@@ -112,7 +153,9 @@ private:
 	Vector3d multPoint3x4(const Isometry3d& M, const Vector3d& v);
 	Quaterniond slerp(const Quaterniond& q1, const Quaterniond& q2, const float& t);
 	std::vector<std::vector<int>> recursiveCreateCombo(const std::vector<int>& ns);
+	void setRoi(int minX, int maxX, int minY, int maxY, int buffer);
+	void updateRoi(int minX, int maxX, int minY, int maxY);
 
 	/// Current timestamp in milliseconds
-	long long time();
+	uint64_t time();
 };

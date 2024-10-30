@@ -1,0 +1,6 @@
+﻿  pch.cpp
+  dllmain.cpp
+  IrMarkerTracking.cpp
+  PoseTracker.cpp
+D:\TeleSonics\Instrumentation\irtracking\IrMarkerTrackingUwp\IrMarkerTracking\IrMarkerTracking\IrMarkerTracking.cpp(335,1): fatal  error C1010: unexpected end of file while looking for precompiled header. Did you forget to add '#include "pch.h"' to your source?
+D:\TeleSonics\Instrumentation\irtracking\IrMarkerTrackingUwp\IrMarkerTracking\IrMarkerTracking\PoseTracker.cpp(999,1): fatal  error C1010: unexpected end of file while looking for precompiled header. Did you forget to add '#include "pch.h"' to your source?
