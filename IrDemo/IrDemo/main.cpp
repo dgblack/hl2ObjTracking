@@ -20,7 +20,7 @@ std::vector<double> parseRow(std::string row) {
 }
 
 int main(void) {
-	std::string path = "D:/TeleSonics/Instrumentation/IrTracking/IrDemo/";
+	std::string path = "D:/TeleSonics/Instrumentation/IrTracking/IrDemo/"; // CHANGE THIS!
 
 	// ---- Set up the marker geometry ----
 	Vector3d marker1(0.03455, 0.01295, 0.01797);
@@ -81,6 +81,12 @@ int main(void) {
 		std::vector<uint8_t> irIm(std::istreambuf_iterator<char>(irIn), {});
 		std::vector<uint8_t> depthIm(std::istreambuf_iterator<char>(depthIn), {});
 
+		if (irIm.size() != 512 * 512) {
+			std::cout << "Read in incorrect number of bytes: " << irIm.size() << "bytes. Skipping image." << std::endl;
+			std::cout << "Did you change the path at the start of the main function?" << std::endl;
+			continue;
+		}
+		
 		// Convert the images to the format they would have had when raw
 		auto irIm16 = std::make_unique<std::vector<uint16_t>>(irIm.size());
 		auto depthIm16 = std::make_unique<std::vector<uint16_t>>(depthIm.size());
